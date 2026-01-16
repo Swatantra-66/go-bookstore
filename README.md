@@ -44,7 +44,7 @@ A modern, full-stack Book Management System powered by a robust **Backend API wr
 
     ```bash
     git clone [https://github.com/Swatantra-66/go-bookstore.git](https://github.com/Swatantra-66/go-bookstore.git)
-    cd BookManagementAPI
+    cd go-bookstore
     ```
 
 2.  **Setup Database**
@@ -85,10 +85,11 @@ go-bookstore/
 │       └── utils.go
 ├── static/
 │   ├── index.html
-│   └── default.png
+│   └── bookUniverse.png
+├── .env
+├── .gitignore
 ├── go.mod
 ├── go.sum
-├── .env
 └── README.md
 ```
 
