@@ -1,6 +1,6 @@
 module github.com/Swatantra-66/go-bookstore
 
-go 1.25.3
+go 1.24.0
 
 require (
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
