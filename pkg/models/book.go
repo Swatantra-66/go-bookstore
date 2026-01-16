@@ -12,6 +12,7 @@ type Book struct {
 	Name        string `json:"name"`
 	Author      string `json:"author"`
 	Publication string `json:"publication"`
+	UserEmail   string `json:"user_email"`
 	IsFav       bool   `json:"isFav"`
 }
 
@@ -76,4 +77,10 @@ func UpdateBook(Id int64, book *Book) (*Book, *gorm.DB) {
 
 	db.Save(&existingBook)
 	return &existingBook, db
+}
+
+func GetBooksByUser(email string) []Book {
+	var Books []Book
+	db.Where("user_email = ?", email).Find(&Books)
+	return Books
 }
