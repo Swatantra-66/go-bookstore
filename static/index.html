@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BookUniverse Pro</title>
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary: #6c5ce7;
+        --primary-glow: rgba(108, 92, 231, 0.4);
+        --secondary: #a29bfe;
+        --dark: #2d3436;
+        --light: #f1f2f6;
+        --sidebar-width: 260px;
+        --glass: rgba(255, 255, 255, 0.95);
+        --danger: #ff7675;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+        transition: all 0.3s ease;
+      }
+
+      body {
+        background: linear-gradient(135deg, #74b9ff, #a29bfe);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .app-container {
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+      }
+
+      /* --- TOGGLE BUTTON --- */
+      .menu-toggle {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: white;
+        color: var(--primary);
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        z-index: 3000;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .menu-toggle:hover {
+        transform: scale(1.1);
+      }
+
+      /* --- SIDEBAR --- */
+      .sidebar {
+        width: var(--sidebar-width);
+        background: var(--glass);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        padding: 20px;
+        padding-top: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: fixed;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        z-index: 2000;
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.4s ease;
+      }
+
+      /* --- MAIN CONTENT --- */
+      .main-content {
+        flex: 1;
+        padding: 40px;
+        padding-top: 80px;
+        width: 100%;
+        margin-left: var(--sidebar-width);
+        transition: margin-left 0.4s ease;
+      }
+
+      /* --- DESKTOP LOGIC --- */
+      body.sidebar-closed .sidebar {
+        transform: translateX(-100%);
+      }
+      body.sidebar-closed .main-content {
+        margin-left: 0;
+      }
+
+      /* --- MOBILE LOGIC --- */
+      @media (max-width: 992px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .main-content {
+          margin-left: 0;
+        }
+        body.sidebar-active .sidebar {
+          transform: translateX(0);
+        }
+        .mobile-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 1500;
+          display: none;
+        }
+        body.sidebar-active .mobile-overlay {
+          display: block;
+        }
+      }
+
+      /* --- UI ELEMENTS --- */
+      .brand {
+        font-size: 1.5rem; /* Larger and more prominent font size */
+        font-weight: 700; /* Bolder weight (700 is bold) for impact */
+        color: var(
+          --primary,
+          #005f73
+        ); /* Use a CSS variable with a fallback color */
+        display: flex;
+        align-items: center;
+        gap: 12px; /* Slightly more space between logo elements if you add an icon later */
+        margin-bottom: 40px;
+        padding-left: 0; /* Align with other content, or keep padding-left: 10px if needed for your layout */
+        text-transform: uppercase; /* Makes the logo text look more formal and intentional */
+        letter-spacing: -0.5px; /* Subtle negative letter spacing can improve the look of large, bold text */
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Adds a subtle depth effect */
+        /* Ensure a professional font is used, imported via @font-face or a service like Google Fonts */
+        font-family: "Helvetica Neue", Arial, sans-serif;
+      }
+
+      .nav-links {
+        list-style: none;
+      }
+      .nav-item {
+        padding: 15px;
+        border-radius: 12px;
+        cursor: pointer;
+        color: #636e72;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .nav-item:hover,
+      .nav-item.active {
+        background: var(--primary);
+        color: white;
+        transform: translateX(5px);
+      }
+
+      .user-profile {
+        background: #f1f2f6;
+        padding: 15px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        background-color: var(--secondary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+      .user-info h4 {
+        font-size: 0.9rem;
+        color: var(--dark);
+      }
+      .user-info p {
+        font-size: 0.75rem;
+        color: #636e72;
+      }
+
+      /* --- MODALS & FORMS --- */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 4000;
+        opacity: 0;
+        visibility: hidden;
+        transition: 0.3s;
+      }
+      .modal-overlay.open {
+        opacity: 1;
+        visibility: visible;
+      }
+      .auth-box {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        width: 350px;
+        text-align: center;
+        transform: translateY(20px);
+        transition: 0.5s;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+      .modal-overlay.open .auth-box {
+        transform: translateY(0);
+      }
+      .auth-input {
+        width: 100%;
+        padding: 12px 20px;
+        border: 1px solid #eee;
+        background: #f9f9f9;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        outline: none;
+      }
+      .auth-btn {
+        width: 100%;
+        padding: 12px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .close-icon {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        cursor: pointer;
+        font-size: 1.2rem;
+      }
+
+      /* --- SEARCH BAR --- */
+      .search-container {
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: center;
+      }
+      #search-box {
+        width: 100%;
+        max-width: 600px;
+        padding: 15px 25px;
+        border-radius: 50px;
+        border: 2px solid transparent;
+        background: rgba(255, 255, 255, 0.95);
+        outline: none;
+        font-size: 1rem;
+        box-shadow: 0 5px 15px rgba(108, 92, 231, 0.15);
+        transition: all 0.3s ease;
+      }
+      #search-box:hover {
+        box-shadow: 0 8px 25px var(--primary-glow);
+        border-color: rgba(108, 92, 231, 0.3);
+      }
+      #search-box:focus {
+        transform: scale(1.02);
+        background: white;
+        border-color: var(--primary);
+        box-shadow: 0 10px 35px var(--primary-glow);
+      }
+
+      /* --- BOOK GRID & CARDS --- */
+      .book-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 20px;
+      }
+      .book-card {
+        background: white;
+        padding: 15px;
+        border-radius: 16px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: visible;
+        border-bottom: 4px solid transparent;
+      }
+      .book-card:hover {
+        transform: translateY(-5px);
+        border-bottom-color: var(--primary);
+      }
+
+      /* Image Container for positioning heart */
+      .image-container {
+        position: relative;
+        margin-bottom: 12px;
+      }
+      .book-cover {
+        width: 100%;
+        aspect-ratio: 3/4;
+        background: #f1f2f6;
+        border-radius: 12px;
+        object-fit: cover;
+        filter: contrast(1.02);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      /* HEART ICON */
+      .fav-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.8);
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #ccc;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .fav-btn:hover {
+        transform: scale(1.1);
+        background: white;
+      }
+      .fav-btn.active {
+        color: #ff7675;
+      } /* Red heart when active */
+
+      /* Actions */
+      .card-actions-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .read-btn {
+        flex: 1;
+        background: var(--primary);
+        color: white;
+        padding: 8px;
+        border-radius: 8px;
+        text-decoration: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        opacity: 0.5;
+        pointer-events: none;
+      }
+      .read-btn.active {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      .menu-container {
+        position: relative;
+      }
+      .menu-btn {
+        background: #f1f2f6;
+        border: none;
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        bottom: 100%;
+        right: 0;
+        background: white;
+        width: 160px;
+        border-radius: 10px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+        padding: 8px;
+        display: none;
+        z-index: 50;
+        margin-bottom: 5px;
+      }
+      .dropdown-menu.show {
+        display: block;
+        animation: fadeIn 0.2s;
+      }
+
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 8px 10px;
+        border: none;
+        background: none;
+        text-align: left;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: #555;
+      }
+      .dropdown-item:hover {
+        background: #f1f2f6;
+      }
+      .dropdown-item.info {
+        cursor: default;
+        color: #888;
+        border-bottom: 1px solid #f1f2f6;
+        padding-bottom: 8px;
+        margin-bottom: 5px;
+      }
+      .dropdown-item.info:hover {
+        background: none;
+      }
+      .dropdown-item.del {
+        color: var(--danger);
+      }
+      .dropdown-item.del:hover {
+        background: #fff0f0;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: #2d3436;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 50px;
+        transform: translateY(100px);
+        opacity: 0;
+        z-index: 5000;
+      }
+      .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <button
+      type="button"
+      class="menu-toggle"
+      onclick="handleSidebarToggle()"
+      aria-label="Toggle Menu"
+    >
+      <i class="bx bx-menu"></i>
+    </button>
+
+    <div class="mobile-overlay" onclick="handleSidebarToggle()"></div>
+
+    <div class="modal-overlay" id="auth-modal">
+      <div class="auth-box">
+        <h2 id="auth-title">Welcome</h2>
+        <p id="auth-desc">Sign in or create an account</p>
+        <br />
+        <form onsubmit="handleAuth(event)">
+          <input
+            type="email"
+            id="auth-email"
+            class="auth-input"
+            placeholder="Email Address"
+            required
+          />
+          <input
+            type="password"
+            id="auth-pass"
+            class="auth-input"
+            placeholder="Password"
+            required
+          />
+          <button type="submit" class="auth-btn">Start Reading</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="settings-modal">
+      <div class="auth-box">
+        <i class="bx bx-x close-icon" onclick="toggleSettings()"></i>
+        <h3>Settings</h3>
+        <p>Update your credentials</p>
+        <br />
+        <form onsubmit="changePassword(event)">
+          <input
+            type="password"
+            id="new-pass"
+            class="auth-input"
+            placeholder="New Password"
+            required
+          />
+          <button type="submit" class="auth-btn">Update Password</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="app-container">
+      <nav class="sidebar" id="sidebar">
+        <div>
+          <div class="brand">
+            <i class="bx bxs-book-heart"></i>
+            <span>BookUniverse</span>
+          </div>
+          <ul class="nav-links">
+            <li
+              class="nav-item active"
+              id="nav-library"
+              onclick="showAllBooks()"
+            >
+              <i class="bx bxs-dashboard"></i>
+              <span>Library</span>
+            </li>
+            <li class="nav-item" onclick="toggleAddModal()">
+              <i class="bx bxs-plus-circle"></i>
+              <span>Add Book</span>
+            </li>
+            <li class="nav-item" id="nav-fav" onclick="filterFavorites()">
+              <i class="bx bxs-heart"></i>
+              <span>Favorites</span>
+            </li>
+            <li class="nav-item" onclick="toggleSettings()">
+              <i class="bx bxs-cog"></i>
+              <span>Settings</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="user-profile" id="user-profile">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-info">
+            <h4 id="user-name">User</h4>
+            <p id="user-email">...</p>
+          </div>
+          <i
+            class="bx bx-log-out"
+            style="margin-left: auto; color: #ff7675"
+            onclick="handleLogout()"
+            title="Logout"
+          ></i>
+        </div>
+      </nav>
+
+      <main class="main-content">
+        <div class="search-container">
+          <input
+            type="text"
+            id="search-box"
+            placeholder="🔍 Search your collection..."
+            onkeyup="filterBooks()"
+          />
+        </div>
+        <div id="book-grid" class="book-grid"></div>
+      </main>
+    </div>
+
+    <div class="modal-overlay" id="form-modal">
+      <div class="auth-box" style="width: 400px">
+        <i class="bx bx-x close-icon" onclick="toggleAddModal()"></i>
+        <h3 id="form-title">📖 Add New Book</h3>
+        <br />
+        <input type="hidden" id="book-id" />
+        <input
+          type="text"
+          id="name"
+          class="auth-input"
+          placeholder="Book Title"
+        />
+        <input
+          type="text"
+          id="author"
+          class="auth-input"
+          placeholder="Author Name"
+        />
+        <input
+          type="text"
+          id="pub"
+          class="auth-input"
+          placeholder="Publisher"
+        />
+        <button class="auth-btn" onclick="handleFormSubmit()">Save Book</button>
+      </div>
+    </div>
+
+    <div id="toast" class="toast">Action Successful!</div>
+
+    <script>
+      const API_URL = "http://localhost:8000/book";
+      const DEFAULT_PROFILE_IMG = "https://i.ibb.co/TCL3d2Q/0x8.webp";
+
+      let allBooks = [];
+      let isEditing = false;
+
+      // --- 1. TOGGLE LOGIC ---
+      function handleSidebarToggle() {
+        const width = window.innerWidth;
+        if (width > 992) {
+          document.body.classList.toggle("sidebar-closed");
+        } else {
+          document.body.classList.toggle("sidebar-active");
+        }
+      }
+
+      /* --- 2. AUTH LOGIC --- */
+      window.onload = function () {
+        const storedUser = localStorage.getItem("bookUser");
+        if (!storedUser) {
+          document.getElementById("auth-modal").classList.add("open");
+        } else {
+          updateProfileUI(JSON.parse(storedUser));
+          loadBooks();
+        }
+      };
+
+      function handleAuth(e) {
+        e.preventDefault();
+        const email = document.getElementById("auth-email").value;
+        const pass = document.getElementById("auth-pass").value;
+        let dbUser = localStorage.getItem("dbUser_" + email);
+        if (dbUser) {
+          dbUser = JSON.parse(dbUser);
+          if (dbUser.password === pass) loginUser(dbUser);
+          else alert("Incorrect Password!");
+        } else {
+          const newUser = {
+            name: email.split("@")[0],
+            email: email,
+            password: pass,
+            avatar: DEFAULT_PROFILE_IMG,
+          };
+          localStorage.setItem("dbUser_" + email, JSON.stringify(newUser));
+          loginUser(newUser);
+          alert("Account created successfully!");
+        }
+      }
+
+      function loginUser(user) {
+        localStorage.setItem("bookUser", JSON.stringify(user));
+        document.getElementById("auth-modal").classList.remove("open");
+        updateProfileUI(user);
+        loadBooks();
+      }
+
+      function handleLogout() {
+        if (confirm("Log out?")) {
+          localStorage.removeItem("bookUser");
+          location.reload();
+        }
+      }
+
+      function updateProfileUI(user) {
+        document.getElementById("user-name").innerText = user.name;
+        document.getElementById("user-email").innerText = user.email;
+        const avatarEl = document.getElementById("user-avatar");
+        if (
+          user.avatar &&
+          (user.avatar.startsWith("http") || user.avatar.startsWith("data:"))
+        ) {
+          avatarEl.innerText = "";
+          avatarEl.style.backgroundImage = `url('${user.avatar}')`;
+          avatarEl.style.backgroundColor = "transparent";
+        } else {
+          avatarEl.style.backgroundImage = "none";
+          avatarEl.style.backgroundColor = "var(--secondary)";
+          avatarEl.innerText = user.avatar || user.name[0].toUpperCase();
+        }
+      }
+
+      /* --- 3. SETTINGS & FILTERS --- */
+      function toggleSettings() {
+        const modal = document.getElementById("settings-modal");
+        modal.classList.toggle("open");
+        document.body.classList.remove("sidebar-active");
+      }
+
+      function changePassword(e) {
+        e.preventDefault();
+        const newPass = document.getElementById("new-pass").value;
+        const currentUser = JSON.parse(localStorage.getItem("bookUser"));
+        currentUser.password = newPass;
+        localStorage.setItem(
+          "dbUser_" + currentUser.email,
+          JSON.stringify(currentUser)
+        );
+        localStorage.setItem("bookUser", JSON.stringify(currentUser));
+        toggleSettings();
+        showToast("Password Updated Successfully!");
+      }
+
+      // --- FILTER: Show Favorites ---
+      function filterFavorites() {
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((el) => el.classList.remove("active"));
+        document.getElementById("nav-fav").classList.add("active");
+
+        const favBooks = allBooks.filter((b) => b.isFav);
+        renderGrid(favBooks);
+
+        if (window.innerWidth <= 992) handleSidebarToggle(); // Close sidebar on mobile
+      }
+
+      // --- FILTER: Show All ---
+      function showAllBooks() {
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((el) => el.classList.remove("active"));
+        document.getElementById("nav-library").classList.add("active");
+        renderGrid(allBooks);
+        if (window.innerWidth <= 992) handleSidebarToggle();
+      }
+
+      /* --- 4. BOOK LOGIC --- */
+      async function fetchBookData(title, author, imgId, linkId) {
+        const query = `${title} ${author}`;
+        try {
+          const res = await fetch(
+            `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+              query
+            )}`
+          );
+          const data = await res.json();
+          if (data.items && data.items.length > 0) {
+            const info = data.items[0].volumeInfo;
+            if (info.imageLinks) {
+              const img = document.getElementById(imgId);
+              if (img)
+                img.src = info.imageLinks.thumbnail.replace(
+                  "http://",
+                  "https://"
+                );
+            }
+            if (info.previewLink || info.infoLink) {
+              const btn = document.getElementById(linkId);
+              if (btn) {
+                btn.href = info.previewLink || info.infoLink;
+                btn.classList.add("active");
+                btn.target = "_blank";
+                btn.innerHTML = "<i class='bx bx-book-open'></i> Read Now";
+              }
+            }
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+      async function loadBooks() {
+        try {
+          const response = await fetch(API_URL);
+          const data = await response.json();
+          allBooks = data || [];
+          renderGrid(allBooks);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function renderGrid(books) {
+        const grid = document.getElementById("book-grid");
+        grid.innerHTML = "";
+        books.forEach((book) => {
+          const imgId = `cover-${book.ID}`;
+          const linkId = `read-${book.ID}`;
+          const menuId = `menu-${book.ID}`;
+          const favClass = book.isFav ? "fav-btn active" : "fav-btn";
+          const favIcon = book.isFav ? "bxs-heart" : "bx-heart";
+
+          const card = document.createElement("div");
+          card.className = "book-card";
+          card.innerHTML = `
+                <div class="image-container">
+                    <img id="${imgId}" class="book-cover" src="https://via.placeholder.com/150x200?text=Searching..." >
+                    <button class="${favClass}" onclick="toggleFav(${book.ID})">
+                        <i class='bx ${favIcon}'></i>
+                    </button>
+                </div>
+
+                <h4 style="margin-bottom:5px; font-size: 1rem;">${book.name}</h4>
+                <p style="color:#888; font-size:0.85rem;">${book.author}</p>
+                
+                <div class="card-actions-row">
+                    <a id="${linkId}" href="#" class="read-btn"><i class='bx bx-loader-alt'></i> Finding Link...</a>
+                    <div class="menu-container">
+                        <button class="menu-btn" onclick="toggleMenu('${menuId}')"><i class='bx bx-dots-vertical-rounded'></i></button>
+                        <div id="${menuId}" class="dropdown-menu">
+                            <div class="dropdown-item info">
+                                <i class='bx bx-buildings'></i> ${book.publication}
+                            </div>
+                            
+                            <button class="dropdown-item" onclick="openEdit(${book.ID}, '${book.name}', '${book.author}', '${book.publication}')"><i class='bx bx-edit'></i> Edit</button>
+                            <button class="dropdown-item del" onclick="deleteBook(${book.ID})"><i class='bx bx-trash'></i> Delete</button>
+                        </div>
+                    </div>
+                </div>`;
+          grid.appendChild(card);
+          fetchBookData(book.name, book.author, imgId, linkId);
+        });
+      }
+
+      /* --- FAVORITE TOGGLE LOGIC --- */
+      async function toggleFav(id) {
+        const book = allBooks.find((b) => b.ID === id);
+        if (!book) return;
+
+        const newStatus = !book.isFav;
+        const updatedBook = { ...book, isFav: newStatus };
+
+        try {
+          await fetch(`${API_URL}/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedBook),
+          });
+
+          // Update local state instantly
+          book.isFav = newStatus;
+
+          // If we are currently on the "Favorites" tab, re-render to remove the unchecked item
+          const isFavTabActive = document
+            .getElementById("nav-fav")
+            .classList.contains("active");
+          if (isFavTabActive) {
+            filterFavorites();
+          } else {
+            renderGrid(allBooks); // Refresh to show color change
+          }
+
+          showToast(
+            newStatus ? "Added to Favorites ❤️" : "Removed from Favorites"
+          );
+        } catch (e) {
+          console.error(e);
+          showToast("Error updating favorite");
+        }
+      }
+
+      /* --- MENU LOGIC --- */
+      function toggleMenu(menuId) {
+        document.querySelectorAll(".dropdown-menu").forEach((el) => {
+          if (el.id !== menuId) el.classList.remove("show");
+        });
+        document.getElementById(menuId).classList.toggle("show");
+      }
+
+      window.onclick = function (event) {
+        if (
+          !event.target.matches(".menu-btn") &&
+          !event.target.matches(".menu-btn i")
+        ) {
+          document
+            .querySelectorAll(".dropdown-menu")
+            .forEach((el) => el.classList.remove("show"));
+        }
+      };
+
+      function toggleAddModal() {
+        const modal = document.getElementById("form-modal");
+        modal.classList.toggle("open");
+        if (!modal.classList.contains("open")) resetForm();
+      }
+
+      async function handleFormSubmit() {
+        const id = document.getElementById("book-id").value;
+        const bookData = {
+          name: document.getElementById("name").value,
+          author: document.getElementById("author").value,
+          publication: document.getElementById("pub").value,
+        };
+
+        // Preserve favorite status if editing
+        if (isEditing) {
+          const currentBook = allBooks.find((b) => b.ID == id);
+          if (currentBook) bookData.isFav = currentBook.isFav;
+        }
+
+        const method = isEditing ? "PUT" : "POST";
+        const url = isEditing ? `${API_URL}/${id}` : API_URL;
+        await fetch(url, {
+          method: method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bookData),
+        });
+        const msg = isEditing
+          ? "Book Updated Successfully!"
+          : "New Book Added!";
+        toggleAddModal();
+        loadBooks();
+        showToast(msg);
+      }
+
+      async function deleteBook(id) {
+        if (confirm("Delete this book?")) {
+          await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+          loadBooks();
+          showToast("Book Deleted");
+        }
+      }
+
+      function openEdit(id, name, author, pub) {
+        isEditing = true;
+        document.getElementById("form-title").innerText = "Edit Book Details";
+        document.getElementById("book-id").value = id;
+        document.getElementById("name").value = name;
+        document.getElementById("author").value = author;
+        document.getElementById("pub").value = pub;
+        toggleAddModal();
+      }
+
+      function resetForm() {
+        isEditing = false;
+        document.getElementById("form-title").innerText = "📖 Add New Book";
+        document.getElementById("name").value = "";
+        document.getElementById("author").value = "";
+        document.getElementById("pub").value = "";
+      }
+
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 3000);
+      }
+
+      function filterBooks() {
+        const q = document.getElementById("search-box").value.toLowerCase();
+        renderGrid(allBooks.filter((b) => b.name.toLowerCase().includes(q)));
+      }
+    </script>
+  </body>
+</html>
