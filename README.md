@@ -1,8 +1,10 @@
-# 📚 BookUniverse Pro
+# 📚 BookUniverse
 
 A modern, full-stack Book Management System powered by a robust **Backend API written in Golang**. This application demonstrates scalable RESTful architecture, integrating with MySQL and external services to create a seamless digital library experience wrapped in a beautiful Glassmorphism UI.
 
-![BookUniverse Screenshot](https://github.com/user-attachments/assets/848b7245-238c-4d14-b877-d7a83818790f")
+## Screenshot
+
+<img src="static/bookUniverse.png" width="700" alt="BookUniverse Screenshot">
 
 ## ✨ Key Features
 
