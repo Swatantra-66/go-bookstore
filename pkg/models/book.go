@@ -16,6 +16,28 @@ type Book struct {
 	IsFav       bool   `json:"isFav"`
 }
 
+type User struct {
+	gorm.Model
+	Name     string `json:"name"`
+	Username string `json:"username" gorm:"unique"`
+	Email    string `json:"email" gorm:"unique"`
+	Password string `json:"password"`
+}
+
+func CreateUser(u *User) *User {
+	db.NewRecord(u)
+	db.Create(&u)
+	return u
+}
+
+func CheckLogin(email, password string) (*User, error) {
+	var user User
+	if err := db.Where("email = ? AND password = ?", email, password).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (b *Book) Validate() string {
 	if b.Name == "" {
 		return "Book name cannot be empty"
@@ -33,6 +55,7 @@ func init() {
 	config.Connect()
 	db = config.GetDB()
 	db.AutoMigrate(&Book{})
+	db.AutoMigrate(&User{})
 }
 
 func (b *Book) CreateBook() *Book {
