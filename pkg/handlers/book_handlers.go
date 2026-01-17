@@ -129,3 +129,46 @@ func GetBookByUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func SignUp(w http.ResponseWriter, r *http.Request) {
+	CreateUser := &models.User{}
+
+	utils.ParseBody(r, CreateUser)
+
+	u := models.CreateUser(CreateUser)
+
+	if u.ID == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict) // 409 Conflict
+		json.NewEncoder(w).Encode(map[string]string{"message": "User already exists!"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(u); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	userLogin := &models.User{}
+	utils.ParseBody(r, userLogin)
+
+	foundUser, err := models.CheckLogin(userLogin.Email, userLogin.Password)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Invalid Email or Password"})
+		return
+	}
+
+	foundUser.Password = ""
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(foundUser); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
+}
