@@ -740,29 +740,11 @@
       let allBooks = [];
       let isEditing = false;
 
-      // --- 1. TOGGLE LOGIC ---
-      function handleSidebarToggle() {
-        const width = window.innerWidth;
-        if (width > 992) {
-          document.body.classList.toggle("sidebar-closed");
-        } else {
-          document.body.classList.toggle("sidebar-active");
-        }
-      }
+      // --- NEW AUTH FUNCTIONS ---
 
-      /* --- 2. AUTH LOGIC (Backend Connected) --- */
-      window.onload = function () {
-        const storedUser = localStorage.getItem("bookUser");
-        if (!storedUser) {
-          document.getElementById("auth-modal").classList.add("open");
-        } else {
-          updateProfileUI(JSON.parse(storedUser));
-          loadBooks();
-        }
-      };
-
-      // Tab Switching Logic
+      // 1. Tab Switching Logic
       function switchTab(tab) {
+        // Hide all forms
         document.getElementById("login-form").style.display = "none";
         document.getElementById("signup-form").style.display = "none";
         document.getElementById("reset-form").style.display = "none";
@@ -783,7 +765,7 @@
         }
       }
 
-      // Handle Login
+      // 2. Handle Login (Talks to Go Backend)
       async function handleLogin(e) {
         e.preventDefault();
         const creds = {
@@ -805,7 +787,7 @@
         }
       }
 
-      // Handle Signup
+      // 3. Handle Signup (Talks to Go Backend)
       async function handleSignup(e) {
         e.preventDefault();
         const userData = {
@@ -829,7 +811,103 @@
         }
       }
 
-      // Handle Reset (Simulation)
+      // 4. Handle Reset
+      function handleResetRequest(e) {
+        e.preventDefault();
+        alert("Reset functionality coming soon!");
+        switchTab("login");
+      }
+
+      // --- 1. TOGGLE LOGIC ---
+      function handleSidebarToggle() {
+        const width = window.innerWidth;
+        if (width > 992) {
+          document.body.classList.toggle("sidebar-closed");
+        } else {
+          document.body.classList.toggle("sidebar-active");
+        }
+      }
+
+      /* --- 2. AUTH LOGIC (Backend Connected) --- */
+      window.onload = function () {
+        const storedUser = localStorage.getItem("bookUser");
+        if (!storedUser) {
+          document.getElementById("auth-modal").classList.add("open");
+        } else {
+          updateProfileUI(JSON.parse(storedUser));
+          loadBooks();
+        }
+      };
+
+      // NEW: Tab Switching Logic
+      function switchTab(tab) {
+        document.getElementById("login-form").style.display = "none";
+        document.getElementById("signup-form").style.display = "none";
+        document.getElementById("reset-form").style.display = "none";
+
+        // Remove active class from buttons
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((el) => el.classList.remove("active"));
+
+        if (tab === "login") {
+          document.getElementById("login-form").style.display = "block";
+          document.querySelectorAll(".tab-btn")[0].classList.add("active");
+        } else if (tab === "signup") {
+          document.getElementById("signup-form").style.display = "block";
+          document.querySelectorAll(".tab-btn")[1].classList.add("active");
+        } else {
+          document.getElementById("reset-form").style.display = "block";
+        }
+      }
+
+      // NEW: Handle Login
+      async function handleLogin(e) {
+        e.preventDefault();
+        const creds = {
+          email: document.getElementById("login-email").value,
+          password: document.getElementById("login-pass").value,
+        };
+
+        const res = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds),
+        });
+
+        if (res.ok) {
+          const user = await res.json();
+          loginUser(user);
+        } else {
+          alert("Invalid Email or Password");
+        }
+      }
+
+      // NEW: Handle Signup
+      async function handleSignup(e) {
+        e.preventDefault();
+        const userData = {
+          name: document.getElementById("signup-name").value,
+          username: document.getElementById("signup-user").value,
+          email: document.getElementById("signup-email").value,
+          password: document.getElementById("signup-pass").value,
+        };
+
+        const res = await fetch("/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData),
+        });
+
+        if (res.ok) {
+          alert("Account created! Please login.");
+          switchTab("login");
+        } else {
+          alert("Username or Email already exists!");
+        }
+      }
+
+      // NEW: Handle Reset (Simulation)
       function handleResetRequest(e) {
         e.preventDefault();
         alert("Reset functionality coming soon!");
@@ -868,7 +946,6 @@
         }
       }
 
-      /* --- 3. SETTINGS & FILTERS --- */
       function toggleSettings() {
         const modal = document.getElementById("settings-modal");
         modal.classList.toggle("open");
@@ -877,6 +954,7 @@
 
       function changePassword(e) {
         e.preventDefault();
+
         const newPass = document.getElementById("new-pass").value;
         const currentUser = JSON.parse(localStorage.getItem("bookUser"));
         currentUser.password = newPass;
@@ -887,7 +965,6 @@
         );
       }
 
-      // --- FILTER: Show Favorites ---
       function filterFavorites() {
         document
           .querySelectorAll(".nav-item")
@@ -897,7 +974,7 @@
         const favBooks = allBooks.filter((b) => b.isFav);
         renderGrid(favBooks);
 
-        if (window.innerWidth <= 992) handleSidebarToggle();
+        if (window.innerWidth <= 992) handleSidebarToggle(); // Close sidebar on mobile
       }
 
       // --- FILTER: Show All ---
