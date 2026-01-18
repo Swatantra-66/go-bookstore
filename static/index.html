@@ -47,7 +47,6 @@
         width: 100%;
       }
 
-      /* --- TOGGLE BUTTON --- */
       .menu-toggle {
         position: fixed;
         top: 20px;
@@ -69,7 +68,36 @@
         transform: scale(1.1);
       }
 
-      /* --- SIDEBAR --- */
+      .theme-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        color: var(--dark);
+        border: none;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        z-index: 3000;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .theme-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+      }
+
+      [data-theme="dark"] .theme-toggle {
+        background: var(--card-bg);
+        color: #dfe6e9;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      }
+
       .sidebar {
         width: var(--sidebar-width);
         background: var(--glass);
@@ -89,7 +117,6 @@
         transition: transform 0.4s ease;
       }
 
-      /* --- MAIN CONTENT --- */
       .main-content {
         flex: 1;
         padding: 40px;
@@ -99,7 +126,6 @@
         transition: margin-left 0.4s ease;
       }
 
-      /* --- DESKTOP LOGIC --- */
       body.sidebar-closed .sidebar {
         transform: translateX(-100%);
       }
@@ -107,7 +133,6 @@
         margin-left: 0;
       }
 
-      /* --- MOBILE LOGIC --- */
       @media (max-width: 992px) {
         .sidebar {
           transform: translateX(-100%);
@@ -133,7 +158,6 @@
         }
       }
 
-      /* --- UI ELEMENTS --- */
       .brand {
         font-size: 1.5rem;
         font-weight: 700;
@@ -178,7 +202,9 @@
         align-items: center;
         gap: 10px;
         cursor: pointer;
+        max-width: 100%;
       }
+
       .user-avatar {
         width: 40px;
         height: 40px;
@@ -192,17 +218,34 @@
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        flex-shrink: 0;
       }
+
+      .user-info {
+        overflow: hidden;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
       .user-info h4 {
         font-size: 0.9rem;
         color: var(--dark);
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
+
       .user-info p {
         font-size: 0.75rem;
         color: #636e72;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
-      /* --- MODALS & FORMS --- */
       .modal-overlay {
         position: fixed;
         top: 0;
@@ -264,7 +307,6 @@
         font-size: 1.2rem;
       }
 
-      /* --- TABS (NEW) --- */
       .tab-btn {
         padding: 10px;
         cursor: pointer;
@@ -277,7 +319,6 @@
         border-bottom: 2px solid var(--primary);
       }
 
-      /* --- SEARCH BAR --- */
       .search-container {
         margin-bottom: 30px;
         display: flex;
@@ -306,7 +347,6 @@
         box-shadow: 0 10px 35px var(--primary-glow);
       }
 
-      /* --- BOOK GRID & CARDS --- */
       .book-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
@@ -326,7 +366,6 @@
         border-bottom-color: var(--primary);
       }
 
-      /* Image Container for positioning heart */
       .image-container {
         position: relative;
         margin-bottom: 12px;
@@ -341,7 +380,6 @@
         border: 1px solid rgba(0, 0, 0, 0.05);
       }
 
-      /* HEART ICON */
       .fav-btn {
         position: absolute;
         top: 10px;
@@ -366,9 +404,8 @@
       }
       .fav-btn.active {
         color: #ff7675;
-      } /* Red heart when active */
+      }
 
-      /* Actions */
       .card-actions-row {
         display: flex;
         align-items: center;
@@ -493,16 +530,164 @@
         opacity: 1;
       }
 
-      .tab-btn {
-        padding: 10px;
-        cursor: pointer;
-        font-weight: 600;
-        color: #888;
-        border-bottom: 2px solid transparent;
+      body::before {
+        content: "BookUniverse";
+        position: fixed;
+        top: 50%;
+        left: 65%;
+        transform: translate(-50%, -50%) rotate(-15deg);
+        font-size: 11vw;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.15);
+        z-index: -1;
+        pointer-events: none;
+        white-space: nowrap;
+        font-family: "Poppins", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 10px;
       }
-      .tab-btn.active {
+
+      .card-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 2px;
+      }
+
+      .empty-state {
+        grid-column: 1 / -1;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 50px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+      }
+      .empty-icon {
+        font-size: 5rem;
         color: var(--primary);
-        border-bottom: 2px solid var(--primary);
+        margin-bottom: 20px;
+        animation: float 3s ease-in-out infinite;
+      }
+      .empty-state h3 {
+        font-size: 1.8rem;
+        color: var(--dark);
+        margin-bottom: 10px;
+      }
+      .empty-state p {
+        color: #636e72;
+        margin-bottom: 25px;
+        font-size: 1.1rem;
+      }
+      .guide-steps {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+      .step {
+        background: #f1f2f6;
+        padding: 15px 25px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        color: #555;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .step i {
+        color: var(--primary);
+        font-size: 1.2rem;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-15px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+
+      .status-badge {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+        border-radius: 12px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        height: fit-content;
+      }
+      .status-reading {
+        background: #ffeaa7;
+        color: #d35400;
+      }
+      .status-completed {
+        background: #55efc4;
+        color: #00b894;
+      }
+      .status-toread {
+        background: #dfe6e9;
+        color: #636e72;
+      }
+
+      [data-theme="dark"] {
+        --primary: #a29bfe;
+        --primary-glow: rgba(162, 155, 254, 0.4);
+        --secondary: #6c5ce7;
+        --dark: #dfe6e9;
+        --light: #2d3436;
+        --glass: rgba(45, 52, 54, 0.95);
+        --card-bg: #2d3436;
+      }
+
+      [data-theme="dark"] body {
+        background: linear-gradient(135deg, #0984e3, #2d3436);
+        color: #dfe6e9;
+      }
+      [data-theme="dark"] .book-card,
+      [data-theme="dark"] .auth-box,
+      [data-theme="dark"] .modal-content {
+        background: var(--card-bg);
+        color: #dfe6e9;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      }
+      [data-theme="dark"] .nav-item {
+        color: #b2bec3;
+      }
+      [data-theme="dark"] .nav-item:hover,
+      [data-theme="dark"] .nav-item.active {
+        background: var(--primary);
+        color: white;
+      }
+      [data-theme="dark"] h4,
+      [data-theme="dark"] h3,
+      [data-theme="dark"] h2 {
+        color: #dfe6e9 !important;
+      }
+      [data-theme="dark"] .auth-input {
+        background: #636e72;
+        border-color: #636e72;
+        color: white;
+      }
+      [data-theme="dark"] .auth-input::placeholder {
+        color: #b2bec3;
+      }
+      [data-theme="dark"] .dropdown-menu {
+        background: #2d3436;
+        border: 1px solid #636e72;
+      }
+      [data-theme="dark"] .dropdown-item {
+        color: #dfe6e9;
+      }
+      [data-theme="dark"] .dropdown-item:hover {
+        background: #636e72;
       }
     </style>
   </head>
@@ -513,7 +698,16 @@
       onclick="handleSidebarToggle()"
       aria-label="Toggle Menu"
     >
-      <i class="bx bx-menu"></i>
+      <i class="bx bx-menu" id="sidebar-icon"></i>
+    </button>
+
+    <button
+      type="button"
+      class="theme-toggle"
+      onclick="toggleDarkMode()"
+      aria-label="Toggle Theme"
+    >
+      <i class="bx bxs-moon" id="theme-icon-main"></i>
     </button>
 
     <div class="mobile-overlay" onclick="handleSidebarToggle()"></div>
@@ -673,34 +867,6 @@
       </div>
     </div>
 
-    <!-- <div class="modal-overlay" id="form-modal">
-      <div class="auth-box" style="width: 400px">
-        <i class="bx bx-x close-icon" onclick="toggleAddModal()"></i>
-        <h3 id="form-title">📖 Add New Book</h3>
-        <br />
-        <input type="hidden" id="book-id" />
-        <input
-          type="text"
-          id="name"
-          class="auth-input"
-          placeholder="Book Title"
-        />
-        <input
-          type="text"
-          id="author"
-          class="auth-input"
-          placeholder="Author Name"
-        />
-        <input
-          type="text"
-          id="pub"
-          class="auth-input"
-          placeholder="Publisher"
-        />
-        <button class="auth-btn" onclick="handleFormSubmit()">Save Book</button>
-      </div>
-    </div> -->
-
     <div class="modal-overlay" id="form-modal">
       <div class="auth-box" style="width: 400px">
         <i class="bx bx-x close-icon" onclick="toggleAddModal()"></i>
@@ -792,11 +958,19 @@
           class="auth-input"
           placeholder="Publisher"
         />
+        <select
+          id="status"
+          class="auth-input"
+          style="background: white; cursor: pointer"
+        >
+          <option value="To Read">🔵 To Read</option>
+          <option value="Reading">🟡 Currently Reading</option>
+          <option value="Completed">🟢 Completed</option>
+        </select>
+
         <button class="auth-btn" onclick="handleFormSubmit()">Save Book</button>
       </div>
     </div>
-
-    <!--form modal closed-->
 
     <div class="app-container">
       <nav class="sidebar" id="sidebar">
@@ -882,16 +1056,11 @@
       let allBooks = [];
       let isEditing = false;
 
-      // --- NEW AUTH FUNCTIONS ---
-
-      // 1. Tab Switching Logic
       function switchTab(tab) {
-        // Hide all forms
         document.getElementById("login-form").style.display = "none";
         document.getElementById("signup-form").style.display = "none";
         document.getElementById("reset-form").style.display = "none";
 
-        // Remove active class from buttons
         document
           .querySelectorAll(".tab-btn")
           .forEach((el) => el.classList.remove("active"));
@@ -907,7 +1076,6 @@
         }
       }
 
-      // 2. Handle Login (Talks to Go Backend)
       async function handleLogin(e) {
         e.preventDefault();
         const creds = {
@@ -929,7 +1097,6 @@
         }
       }
 
-      // 3. Handle Signup (Talks to Go Backend)
       async function handleSignup(e) {
         e.preventDefault();
         const userData = {
@@ -953,24 +1120,35 @@
         }
       }
 
-      // 4. Handle Reset
       function handleResetRequest(e) {
         e.preventDefault();
         alert("Reset functionality coming soon!");
         switchTab("login");
       }
 
-      // --- 1. TOGGLE LOGIC ---
       function handleSidebarToggle() {
         const width = window.innerWidth;
+        const icon = document.getElementById("sidebar-icon");
+
         if (width > 992) {
           document.body.classList.toggle("sidebar-closed");
+
+          if (document.body.classList.contains("sidebar-closed")) {
+            icon.className = "bx bx-menu";
+          } else {
+            icon.className = "bx bx-x";
+          }
         } else {
           document.body.classList.toggle("sidebar-active");
+
+          if (document.body.classList.contains("sidebar-active")) {
+            icon.className = "bx bx-x";
+          } else {
+            icon.className = "bx bx-menu";
+          }
         }
       }
 
-      /* --- 2. AUTH LOGIC (Backend Connected) --- */
       window.onload = function () {
         const storedUser = localStorage.getItem("bookUser");
         if (!storedUser) {
@@ -979,82 +1157,20 @@
           updateProfileUI(JSON.parse(storedUser));
           loadBooks();
         }
+
+        const icon = document.getElementById("sidebar-icon");
+        if (window.innerWidth > 992) {
+          icon.className = "bx bx-x";
+        } else {
+          icon.className = "bx bx-menu";
+        }
+
+        const savedTheme = localStorage.getItem("theme");
+        const themeIcon = document.getElementById("theme-icon-main");
+        if (savedTheme === "dark") {
+          themeIcon.className = "bx bxs-sun";
+        }
       };
-
-      // NEW: Tab Switching Logic
-      function switchTab(tab) {
-        document.getElementById("login-form").style.display = "none";
-        document.getElementById("signup-form").style.display = "none";
-        document.getElementById("reset-form").style.display = "none";
-
-        // Remove active class from buttons
-        document
-          .querySelectorAll(".tab-btn")
-          .forEach((el) => el.classList.remove("active"));
-
-        if (tab === "login") {
-          document.getElementById("login-form").style.display = "block";
-          document.querySelectorAll(".tab-btn")[0].classList.add("active");
-        } else if (tab === "signup") {
-          document.getElementById("signup-form").style.display = "block";
-          document.querySelectorAll(".tab-btn")[1].classList.add("active");
-        } else {
-          document.getElementById("reset-form").style.display = "block";
-        }
-      }
-
-      // NEW: Handle Login
-      async function handleLogin(e) {
-        e.preventDefault();
-        const creds = {
-          email: document.getElementById("login-email").value,
-          password: document.getElementById("login-pass").value,
-        };
-
-        const res = await fetch("/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(creds),
-        });
-
-        if (res.ok) {
-          const user = await res.json();
-          loginUser(user);
-        } else {
-          alert("Invalid Email or Password");
-        }
-      }
-
-      // NEW: Handle Signup
-      async function handleSignup(e) {
-        e.preventDefault();
-        const userData = {
-          name: document.getElementById("signup-name").value,
-          username: document.getElementById("signup-user").value,
-          email: document.getElementById("signup-email").value,
-          password: document.getElementById("signup-pass").value,
-        };
-
-        const res = await fetch("/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(userData),
-        });
-
-        if (res.ok) {
-          alert("Account created! Please login.");
-          switchTab("login");
-        } else {
-          alert("Username or Email already exists!");
-        }
-      }
-
-      // NEW: Handle Reset (Simulation)
-      function handleResetRequest(e) {
-        e.preventDefault();
-        alert("Reset functionality coming soon!");
-        switchTab("login");
-      }
 
       function loginUser(user) {
         localStorage.setItem("bookUser", JSON.stringify(user));
@@ -1116,10 +1232,9 @@
         const favBooks = allBooks.filter((b) => b.isFav);
         renderGrid(favBooks);
 
-        if (window.innerWidth <= 992) handleSidebarToggle(); // Close sidebar on mobile
+        if (window.innerWidth <= 992) handleSidebarToggle();
       }
 
-      // --- FILTER: Show All ---
       function showAllBooks() {
         document
           .querySelectorAll(".nav-item")
@@ -1141,7 +1256,6 @@
           if (data.items && data.items.length > 0) {
             const info = data.items[0].volumeInfo;
 
-            // 1. Update Image
             if (info.imageLinks) {
               const img = document.getElementById(imgId);
               if (img)
@@ -1151,13 +1265,11 @@
                 );
             }
 
-            // 2. Update 'Preview' Button Link
             if (info.previewLink || info.infoLink) {
               const btn = document.getElementById(linkId);
               if (btn) {
                 btn.href = info.previewLink || info.infoLink;
-                btn.classList.add("active"); // Make it clickable (opacity 1)
-                // Note: We keep the text as "Preview" or "Google"
+                btn.classList.add("active");
               }
             }
           }
@@ -1168,13 +1280,10 @@
 
       async function loadBooks() {
         try {
-          // 1. Get the logged-in user
           const currentUser = JSON.parse(localStorage.getItem("bookUser"));
 
-          // 2. Safety check: If no one is logged in, stop here.
           if (!currentUser) return;
 
-          // 3. Fetch with the user's email in the URL
           const response = await fetch(`${API_URL}?user=${currentUser.email}`);
 
           const data = await response.json();
@@ -1188,6 +1297,28 @@
       function renderGrid(books) {
         const grid = document.getElementById("book-grid");
         grid.innerHTML = "";
+
+        if (books.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon"><i class='bx bxs-planet'></i></div>
+                <h3>Welcome to your BookUniverse! 🪐</h3>
+                <p>Your library is currently empty, but it's full of potential.</p>
+                
+                <div class="guide-steps">
+                    <div class="step"><i class='bx bxs-camera'></i> 1. Click "Add Book"</div>
+                    <div class="step"><i class='bx bx-barcode-reader'></i> 2. Scan a Barcode</div>
+                    <div class="step"><i class='bx bxs-magic-wand'></i> 3. Or Ask AI for Ideas</div>
+                </div>
+
+                <button class="auth-btn" style="width: auto; padding: 12px 30px;" onclick="toggleAddModal()">
+                    <i class='bx bxs-plus-circle'></i> Add Your First Book
+                </button>
+            </div>
+        `;
+          return;
+        }
+
         books.forEach((book) => {
           const imgId = `cover-${book.ID}`;
           const linkId = `read-${book.ID}`;
@@ -1195,52 +1326,60 @@
           const favClass = book.isFav ? "fav-btn active" : "fav-btn";
           const favIcon = book.isFav ? "bxs-heart" : "bx-heart";
 
-          // Generate Search Link
           const searchQuery = encodeURIComponent(
             `${book.name} ${book.author} read online free`
           );
           const googleSearchUrl = `https://www.google.com/search?q=${searchQuery}`;
 
+          let badgeClass = "status-toread";
+          let badgeText = "To Read";
+          if (book.status === "Reading") {
+            badgeClass = "status-reading";
+            badgeText = "Reading";
+          } else if (book.status === "Completed") {
+            badgeClass = "status-completed";
+            badgeText = "Finished";
+          }
+
           const card = document.createElement("div");
           card.className = "book-card";
+
           card.innerHTML = `
-                <div class="image-container">
-                    <img id="${imgId}" class="book-cover" src="https://via.placeholder.com/150x200?text=Searching..." >
-                    <button class="${favClass}" onclick="toggleFav(${book.ID})">
-                        <i class='bx ${favIcon}'></i>
-                    </button>
-                </div>
+            <div class="image-container">
+                <img id="${imgId}" class="book-cover" src="https://via.placeholder.com/150x200?text=Searching..." >
+                <button class="${favClass}" onclick="toggleFav(${book.ID})">
+                    <i class='bx ${favIcon}'></i>
+                </button>
+            </div>
 
-                <h4 style="margin-bottom:5px; font-size: 1rem;">${book.name}</h4>
-                <p style="color:#888; font-size:0.85rem;">${book.author}</p>
-                
-                <div class="card-actions-row" style="gap: 8px;">
-                    <a id="${linkId}" href="#" class="read-btn" target="_blank">
-                        <i class='bx bxl-google'></i> Preview
-                    </a>
+            <div class="card-header-row">
+                <h4 style="font-size: 1rem; margin: 0; line-height: 1.3;">${book.name}</h4>
+                <span class="status-badge ${badgeClass}">${badgeText}</span>
+            </div>
 
-                    <a href="${googleSearchUrl}" target="_blank" class="read-btn active" style="background: #00b894;">
-                        <i class='bx bx-search-alt'></i> Find
-                    </a>
-
-                    <div class="menu-container">
-                        <button class="menu-btn" onclick="toggleMenu('${menuId}')"><i class='bx bx-dots-vertical-rounded'></i></button>
-                        <div id="${menuId}" class="dropdown-menu">
-                            <div class="dropdown-item info">
-                                <i class='bx bx-buildings'></i> ${book.publication}
-                            </div>
-                            
-                            <button class="dropdown-item" onclick="openEdit(${book.ID}, '${book.name}', '${book.author}', '${book.publication}')"><i class='bx bx-edit'></i> Edit</button>
-                            <button class="dropdown-item del" onclick="deleteBook(${book.ID})"><i class='bx bx-trash'></i> Delete</button>
-                        </div>
+            <p style="color:#888; font-size:0.85rem; margin-top: 5px; margin-bottom: 15px;">${book.author}</p>
+            
+            <div class="card-actions-row" style="gap: 8px;">
+                <a id="${linkId}" href="#" class="read-btn" target="_blank">
+                    <i class='bx bxl-google'></i> Preview
+                </a>
+                <a href="${googleSearchUrl}" target="_blank" class="read-btn active" style="background: #00b894;">
+                    <i class='bx bx-search-alt'></i> Find
+                </a>
+                <div class="menu-container">
+                    <button class="menu-btn" onclick="toggleMenu('${menuId}')"><i class='bx bx-dots-vertical-rounded'></i></button>
+                    <div id="${menuId}" class="dropdown-menu">
+                        <div class="dropdown-item info"><i class='bx bx-buildings'></i> ${book.publication}</div>
+                        <button class="dropdown-item" onclick="openEdit(${book.ID}, '${book.name}', '${book.author}', '${book.publication}', '${book.status}')"><i class='bx bx-edit'></i> Edit</button>
+                        <button class="dropdown-item del" onclick="deleteBook(${book.ID})"><i class='bx bx-trash'></i> Delete</button>
                     </div>
-                </div>`;
+                </div>
+            </div>`;
           grid.appendChild(card);
           fetchBookData(book.name, book.author, imgId, linkId);
         });
       }
 
-      /* --- FAVORITE TOGGLE LOGIC --- */
       async function toggleFav(id) {
         const book = allBooks.find((b) => b.ID === id);
         if (!book) return;
@@ -1255,17 +1394,15 @@
             body: JSON.stringify(updatedBook),
           });
 
-          // Update local state instantly
           book.isFav = newStatus;
 
-          // If we are currently on the "Favorites" tab, re-render to remove the unchecked item
           const isFavTabActive = document
             .getElementById("nav-fav")
             .classList.contains("active");
           if (isFavTabActive) {
             filterFavorites();
           } else {
-            renderGrid(allBooks); // Refresh to show color change
+            renderGrid(allBooks);
           }
 
           showToast(
@@ -1277,7 +1414,6 @@
         }
       }
 
-      /* --- MENU LOGIC --- */
       function toggleMenu(menuId) {
         document.querySelectorAll(".dropdown-menu").forEach((el) => {
           if (el.id !== menuId) el.classList.remove("show");
@@ -1305,18 +1441,16 @@
       async function handleFormSubmit() {
         const id = document.getElementById("book-id").value;
 
-        // 1. Get the logged-in user
         const currentUser = JSON.parse(localStorage.getItem("bookUser"));
 
-        // 2. Add user_email to the book data
         const bookData = {
           name: document.getElementById("name").value,
           author: document.getElementById("author").value,
           publication: document.getElementById("pub").value,
+          status: document.getElementById("status").value,
           user_email: currentUser ? currentUser.email : "",
         };
 
-        // Preserve favorite status if editing
         if (isEditing) {
           const currentBook = allBooks.find((b) => b.ID == id);
           if (currentBook) bookData.isFav = currentBook.isFav;
@@ -1347,13 +1481,14 @@
         }
       }
 
-      function openEdit(id, name, author, pub) {
+      function openEdit(id, name, author, pub, status) {
         isEditing = true;
         document.getElementById("form-title").innerText = "Edit Book Details";
         document.getElementById("book-id").value = id;
         document.getElementById("name").value = name;
         document.getElementById("author").value = author;
         document.getElementById("pub").value = pub;
+        document.getElementById("status").value = status || "To Read";
         toggleAddModal();
       }
 
@@ -1377,7 +1512,6 @@
         renderGrid(allBooks.filter((b) => b.name.toLowerCase().includes(q)));
       }
 
-      /* --- BARCODE SCANNER LOGIC --- */
       function startScanner() {
         if (!navigator.onLine) {
           alert(
@@ -1389,6 +1523,9 @@
         const viewport = document.getElementById("interactive");
         viewport.style.display = "block";
 
+        const isMobile = window.innerWidth <= 768;
+        const cameraMode = isMobile ? "environment" : "user";
+
         Quagga.init(
           {
             inputStream: {
@@ -1396,17 +1533,24 @@
               type: "LiveStream",
               target: document.querySelector("#interactive"),
               constraints: {
-                facingMode: "environment",
+                width: 640,
+                height: 480,
+                facingMode: cameraMode,
               },
             },
             decoder: {
-              readers: ["ean_reader"], // standard ISBN
+              readers: ["ean_reader"],
             },
           },
           function (err) {
             if (err) {
               console.log(err);
-              alert("Camera error. Please allow permissions.");
+              viewport.style.display = "none";
+              alert(
+                "Camera error: " +
+                  err.name +
+                  "\n(Make sure you allowed camera permissions!)"
+              );
               return;
             }
             Quagga.start();
@@ -1459,34 +1603,53 @@
       }
 
       async function getAIRecommendations() {
-        // 1. Check Login
         const currentUser = JSON.parse(localStorage.getItem("bookUser"));
         if (!currentUser) {
           alert("Please Login first!");
           return;
         }
 
-        // 2. Show Modal with Loading
         const modal = document.getElementById("ai-modal");
         const content = document.getElementById("ai-content");
         modal.classList.add("open");
         content.innerHTML = `<p style="text-align:center; padding:20px;">Reading your favorites... <br><br> <i class='bx bx-loader-alt bx-spin' style="font-size:2rem; color:var(--primary)"></i></p>`;
 
-        // 3. Call Go Backend
         try {
           const res = await fetch(`/recommend?user=${currentUser.email}`);
           const data = await res.json();
 
-          // 4. CLEANUP: Remove Markdown symbols (```html) and newlines
           let cleanText = data.answer
-            .replace(/```html/g, "") // Remove starting tag
-            .replace(/```/g, "") // Remove ending tag
-            .replace(/\n/g, "<br>"); // Keep line breaks
+            .replace(/```html/g, "")
+            .replace(/```/g, "")
+            .replace(/\n/g, "<br>");
 
           content.innerHTML = cleanText;
         } catch (e) {
           content.innerHTML =
             "<p style='color:red'>AI is sleeping right now. Try again later.</p>";
+        }
+      }
+
+      (function initTheme() {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+
+      function toggleDarkMode() {
+        const currentTheme =
+          document.documentElement.getAttribute("data-theme");
+        const icon = document.getElementById("theme-icon-main");
+
+        if (currentTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "light");
+          localStorage.setItem("theme", "light");
+          icon.className = "bx bxs-moon";
+        } else {
+          document.documentElement.setAttribute("data-theme", "dark");
+          localStorage.setItem("theme", "dark");
+          icon.className = "bx bxs-sun";
         }
       }
     </script>
