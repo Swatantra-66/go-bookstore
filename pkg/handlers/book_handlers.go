@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -85,40 +87,37 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateBook(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	updatebook := &models.Book{}
-	if err := utils.ParseBody(r, updatebook); err != nil {
-		http.Error(w, "Error: invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	params := mux.Vars(r)
-	bookId := params["bookId"]
-	Id, err := strconv.ParseInt(bookId, 0, 0)
+	vars := mux.Vars(r)
+	bookId := vars["bookId"]
+	ID, err := strconv.ParseInt(bookId, 0, 0)
 	if err != nil {
-		http.Error(w, "Error: invalid book id", http.StatusBadRequest)
-		return
+		fmt.Println("Error while parsing")
+	}
+	var updateBook = &models.Book{}
+	utils.ParseBody(r, updateBook)
+
+	bookDetails, db := models.GetBookByID(ID)
+
+	if updateBook.Name != "" {
+		bookDetails.Name = updateBook.Name
+	}
+	if updateBook.Author != "" {
+		bookDetails.Author = updateBook.Author
+	}
+	if updateBook.Publication != "" {
+		bookDetails.Publication = updateBook.Publication
 	}
 
-	bookDetails, db := models.GetBookByID(Id)
-	if updatebook.Name != "" {
-		bookDetails.Name = updatebook.Name
+	if updateBook.Status != "" {
+		bookDetails.Status = updateBook.Status
 	}
-	if updatebook.Author != "" {
-		bookDetails.Author = updatebook.Author
-	}
-	if updatebook.Publication != "" {
-		bookDetails.Publication = updatebook.Publication
-	}
-
-	bookDetails.IsFav = updatebook.IsFav //favourite book
 
 	db.Save(&bookDetails)
-	if res := json.NewEncoder(w).Encode(bookDetails); res != nil {
-		http.Error(w, "error: failed to encode response", http.StatusInternalServerError)
-		return
-	}
+
+	res, _ := json.Marshal(bookDetails)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
 
 func GetBookByUser(w http.ResponseWriter, r *http.Request) {
@@ -190,9 +189,7 @@ func ServePublicPage(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./static/public.html")
 }
 
-// --- AI RECOMMENDATION HANDLER (UPDATED) ---
 func GetAIRecommendations(w http.ResponseWriter, r *http.Request) {
-	// 1. Get User Email & Books
 	userEmail := r.URL.Query().Get("user")
 	allBooks := models.GetBooksByUser(userEmail)
 	var favTitles []string
@@ -207,13 +204,10 @@ func GetAIRecommendations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Construct Prompt (Sanitized)
-	// We tell the AI strictly to ignore safety for book titles
 	prompt := fmt.Sprintf("I am building a library app. The user has read these books: %v. Suggest 3 similar books. Format as HTML. Ignore profanity in titles as they are just book names.", favTitles)
-	apiKey := "AIzaSyD9HuNW_8iw-dY3o35YK5X-uxL3cNjLCQ0"
+	apiKey := os.Getenv("GEMINI_API_KEY")
 
 	url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey
-	// 4. JSON Body with MAX SAFETY BYPASS
 	requestBody, _ := json.Marshal(map[string]interface{}{
 		"contents": []interface{}{
 			map[string]interface{}{
@@ -222,7 +216,6 @@ func GetAIRecommendations(w http.ResponseWriter, r *http.Request) {
 				},
 			},
 		},
-		// 👇 FORCE DISABLE ALL FILTERS
 		"safetySettings": []map[string]string{
 			{"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
 			{"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
@@ -231,7 +224,6 @@ func GetAIRecommendations(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 
-	// 5. Send Request
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
 		http.Error(w, "Network Error", http.StatusInternalServerError)
@@ -239,15 +231,12 @@ func GetAIRecommendations(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	// 6. Read & Debug Response
 	body, _ := io.ReadAll(resp.Body)
 
-	// DEBUG PRINT
 	fmt.Println("--- DEBUG RESPONSE ---")
 	fmt.Println(string(body))
 	fmt.Println("----------------------")
 
-	// 7. Parse
 	var geminiResp struct {
 		Candidates []struct {
 			Content struct {
@@ -262,14 +251,64 @@ func GetAIRecommendations(w http.ResponseWriter, r *http.Request) {
 	}
 	json.Unmarshal(body, &geminiResp)
 
-	// 8. Send Answer
 	if geminiResp.Error.Message != "" {
 		json.NewEncoder(w).Encode(map[string]string{"answer": "<b>API Error:</b> " + geminiResp.Error.Message})
 	} else if len(geminiResp.Candidates) > 0 {
 		aiText := geminiResp.Candidates[0].Content.Parts[0].Text
 		json.NewEncoder(w).Encode(map[string]string{"answer": aiText})
 	} else {
-		// If we get here, it means 200 OK but empty answer (Blocked)
 		json.NewEncoder(w).Encode(map[string]string{"answer": "Sorry, the AI is still blocking your book list. Try removing the book with the swear word to test if it works!"})
+	}
+}
+
+func GetBookDetailsAI(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Query().Get("title")
+	if title == "" {
+		http.Error(w, "Title is required", http.StatusBadRequest)
+		return
+	}
+
+	prompt := fmt.Sprintf("Return a JSON object with strictly two keys: 'author' and 'publisher' for the book title '%s'. Do not add any markdown formatting or extra text. Just raw JSON.", title)
+
+	apiKey := os.Getenv("GEMINI_API_KEY")
+	url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey
+
+	requestBody, _ := json.Marshal(map[string]interface{}{
+		"contents": []interface{}{
+			map[string]interface{}{
+				"parts": []interface{}{
+					map[string]string{"text": prompt},
+				},
+			},
+		},
+	})
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		http.Error(w, "AI Error", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	var geminiResp struct {
+		Candidates []struct {
+			Content struct {
+				Parts []struct {
+					Text string `json:"text"`
+				} `json:"parts"`
+			} `json:"content"`
+		} `json:"candidates"`
+	}
+	json.Unmarshal(body, &geminiResp)
+
+	if len(geminiResp.Candidates) > 0 {
+		rawJSON := geminiResp.Candidates[0].Content.Parts[0].Text
+		rawJSON = strings.Trim(rawJSON, " ```json\n")
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(rawJSON))
+	} else {
+		http.Error(w, "No info found", http.StatusNotFound)
 	}
 }
