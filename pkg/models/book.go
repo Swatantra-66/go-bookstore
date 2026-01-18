@@ -14,6 +14,7 @@ type Book struct {
 	Publication string `json:"publication"`
 	UserEmail   string `json:"user_email"`
 	IsFav       bool   `json:"isFav"`
+	Status      string `json:"status"`
 }
 
 type User struct {
