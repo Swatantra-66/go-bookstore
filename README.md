@@ -4,6 +4,7 @@ This full-stack application combines a high-performance REST API written in Go w
 
 ## Screenshot
 
+<img src="static/BookUniverse2-Pro.png" width="700" alt="BookUniverse Screenshot"><br>
 <img src="static/BookUniverse-Pro.png" width="700" alt="BookUniverse Screenshot">
 
 ## ✨ Key Features
