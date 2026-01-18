@@ -646,6 +646,33 @@
       </div>
     </div>
 
+    <div class="modal-overlay" id="ai-modal">
+      <div class="auth-box" style="width: 500px; text-align: left">
+        <i
+          class="bx bx-x close-icon"
+          onclick="document.getElementById('ai-modal').classList.remove('open')"
+        ></i>
+        <h2
+          style="display: flex; align-items: center; gap: 10px; color: #6c5ce7"
+        >
+          <i class="bx bxs-bot"></i> AI Librarian
+        </h2>
+        <hr style="border: 0; height: 1px; background: #eee; margin: 15px 0" />
+
+        <div id="ai-content" style="line-height: 1.6; color: #444">
+          Thinking... <i class="bx bx-loader-alt bx-spin"></i>
+        </div>
+
+        <button
+          class="auth-btn"
+          style="margin-top: 20px"
+          onclick="document.getElementById('ai-modal').classList.remove('open')"
+        >
+          Awesome!
+        </button>
+      </div>
+    </div>
+
     <!-- <div class="modal-overlay" id="form-modal">
       <div class="auth-box" style="width: 400px">
         <i class="bx bx-x close-icon" onclick="toggleAddModal()"></i>
@@ -798,6 +825,22 @@
             <li class="nav-item" onclick="toggleSettings()">
               <i class="bx bxs-cog"></i>
               <span>Settings</span>
+            </li>
+            <li class="nav-item" onclick="copyProfileLink()">
+              <i class="bx bx-share-alt"></i>
+              <span>Share Profile</span>
+            </li>
+            <li class="nav-item" onclick="getAIRecommendations()">
+              <i class="bx bxs-magic-wand" style="color: #a29bfe"></i>
+              <span
+                style="
+                  background: linear-gradient(45deg, #6c5ce7, #ff7675);
+                  -webkit-background-clip: text;
+                  -webkit-text-fill-color: transparent;
+                  font-weight: bold;
+                "
+                >AI Suggest</span
+              >
             </li>
           </ul>
         </div>
@@ -1336,6 +1379,13 @@
 
       /* --- BARCODE SCANNER LOGIC --- */
       function startScanner() {
+        if (!navigator.onLine) {
+          alert(
+            "You are offline! 🛑\nWe can scan the barcode, but we can't fetch book details without internet."
+          );
+          return;
+        }
+
         const viewport = document.getElementById("interactive");
         viewport.style.display = "block";
 
@@ -1396,6 +1446,45 @@
         } catch (e) {
           console.error(e);
           alert("Error fetching book details.");
+        }
+      }
+
+      function copyProfileLink() {
+        const user = JSON.parse(localStorage.getItem("bookUser"));
+        if (!user) return alert("Please login first.");
+
+        const link = `${window.location.origin}/u/${user.username}`;
+        navigator.clipboard.writeText(link);
+        showToast("Public link copied to clipboard! 📋");
+      }
+
+      async function getAIRecommendations() {
+        // 1. Check Login
+        const currentUser = JSON.parse(localStorage.getItem("bookUser"));
+        if (!currentUser) {
+          alert("Please Login first!");
+          return;
+        }
+
+        // 2. Show Modal with Loading
+        const modal = document.getElementById("ai-modal");
+        const content = document.getElementById("ai-content");
+        modal.classList.add("open");
+        content.innerHTML = `<p style="text-align:center; padding:20px;">Reading your favorites... <br><br> <i class='bx bx-loader-alt bx-spin' style="font-size:2rem; color:var(--primary)"></i></p>`;
+
+        // 3. Call Go Backend
+        try {
+          const res = await fetch(`/recommend?user=${currentUser.email}`);
+          const data = await res.json();
+
+          // 4. Convert newlines to breaks for clean display
+          // (Gemini returns Markdown, we do a simple cleanup)
+          let formattedText = data.answer.replace(/\n/g, "<br>");
+
+          content.innerHTML = formattedText;
+        } catch (e) {
+          content.innerHTML =
+            "<p style='color:red'>AI is sleeping right now. Try again later.</p>";
         }
       }
     </script>

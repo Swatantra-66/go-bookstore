@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Public Library | BookUniverse</title>
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #6c5ce7;
+        --bg: #f1f2f6;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #74b9ff, #a29bfe);
+        min-height: 100vh;
+        padding: 40px 20px;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      /* Profile Header */
+      .profile-header {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+      .avatar {
+        width: 80px;
+        height: 80px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0 auto 15px;
+      }
+      h1 {
+        margin-bottom: 5px;
+        color: #2d3436;
+      }
+      p {
+        color: #636e72;
+      }
+
+      /* Grid */
+      .book-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 25px;
+      }
+      .book-card {
+        background: white;
+        padding: 15px;
+        border-radius: 15px;
+        transition: transform 0.3s;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      }
+      .book-card:hover {
+        transform: translateY(-5px);
+      }
+      .book-cover {
+        width: 100%;
+        aspect-ratio: 3/4;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        background: #eee;
+      }
+      .read-btn {
+        display: block;
+        background: var(--primary);
+        color: white;
+        text-align: center;
+        padding: 8px;
+        border-radius: 8px;
+        text-decoration: none;
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="profile-header">
+        <div class="avatar" id="avatar">U</div>
+        <h1 id="page-title">Loading Library...</h1>
+        <p>Public Collection • BookUniverse</p>
+        <a
+          href="/"
+          style="
+            display: inline-block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+          "
+          >Build Your Own Library &rarr;</a
+        >
+      </div>
+
+      <div id="book-grid" class="book-grid"></div>
+    </div>
+
+    <script>
+      // 1. Get Username from URL (e.g., /u/swatantra -> swatantra)
+      const path = window.location.pathname;
+      const username = path.split("/").pop();
+
+      document.getElementById(
+        "page-title"
+      ).innerText = `@${username}'s Library`;
+      document.getElementById("avatar").innerText = username[0].toUpperCase();
+
+      // 2. Fetch Public Data
+      fetch(`/api/public/${username}`)
+        .then((res) => res.json())
+        .then((books) => {
+          const grid = document.getElementById("book-grid");
+          if (books.length === 0) {
+            grid.innerHTML =
+              "<p style='grid-column: 1/-1; text-align:center; color:white;'>No books found in this collection.</p>";
+            return;
+          }
+
+          books.forEach((book) => {
+            const imgId = `cover-${book.ID}`;
+            const card = document.createElement("div");
+            card.className = "book-card";
+            card.innerHTML = `
+                    <img id="${imgId}" class="book-cover" src="https://via.placeholder.com/150x200?text=..." >
+                    <h4 style="font-size:1rem; margin-bottom:5px;">${
+                      book.name
+                    }</h4>
+                    <p style="font-size:0.85rem; color:#888;">${book.author}</p>
+                    <a href="https://www.google.com/search?q=${encodeURIComponent(
+                      book.name + " " + book.author
+                    )}" target="_blank" class="read-btn">Find Book</a>
+                `;
+            grid.appendChild(card);
+            fetchCover(book.name, book.author, imgId);
+          });
+        });
+
+      // 3. Helper to fetch covers (Client-side)
+      async function fetchCover(title, author, imgId) {
+        try {
+          const res = await fetch(
+            `https://www.googleapis.com/books/v1/volumes?q=${title}+${author}`
+          );
+          const data = await res.json();
+          if (data.items && data.items[0].volumeInfo.imageLinks) {
+            document.getElementById(imgId).src =
+              data.items[0].volumeInfo.imageLinks.thumbnail.replace(
+                "http://",
+                "https://"
+              );
+          }
+        } catch (e) {}
+      }
+    </script>
+  </body>
+</html>
