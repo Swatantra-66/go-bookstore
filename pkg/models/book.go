@@ -107,3 +107,15 @@ func GetBooksByUser(email string) []Book {
 	db.Where("user_email = ?", email).Find(&Books)
 	return Books
 }
+
+func GetBooksByHandle(username string) []Book {
+	var user User
+	var books []Book
+
+	if err := db.Where("username = ?", username).First(&user).Error; err != nil {
+		return []Book{}
+	}
+
+	db.Where("user_email = ?", user.Email).Find(&books)
+	return books
+}
