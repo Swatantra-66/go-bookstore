@@ -570,28 +570,69 @@ function copyProfileLink() {
 async function getAIRecommendations() {
     const currentUser = JSON.parse(localStorage.getItem("bookUser"));
     if (!currentUser) {
-        alert("Please Login first!");
+        showToast("Please Login to use AI features!");
         return;
     }
 
     const modal = document.getElementById("ai-modal");
     const content = document.getElementById("ai-content");
+    const closeBtn = document.getElementById("ai-close-btn");
+
     modal.classList.add("open");
-    content.innerHTML = `<p style="text-align:center; padding:20px;">Reading your favorites... <br><br> <i class='bx bx-loader-alt bx-spin' style="font-size:2rem; color:var(--primary)"></i></p>`;
+
+    if (closeBtn) closeBtn.style.display = "none";
+
+    content.innerHTML = `
+        <div style="text-align:center; padding:20px;">
+            <p style="margin-bottom: 10px;">Reading your favorites...</p>
+            <i class='bx bx-loader-alt bx-spin' style="font-size:2rem; color:#6c5ce7"></i>
+        </div>
+    `;
 
     try {
         const res = await fetch(`/recommend?user=${currentUser.email}`);
         const data = await res.json();
+        const rawText = data.answer || data.recommendation || "No recommendation found.";
 
-        let cleanText = data.answer
+        if (rawText.includes("API Error") || rawText.includes("quota") || !res.ok) {
+            throw new Error(rawText);
+        }
+
+        // 3. SUCCESS PATH
+        let cleanText = rawText
             .replace(/```html/g, "")
             .replace(/```/g, "")
-            .replace(/\n/g, "<br>");
+            .replace(/\n/g, "<br>")
+            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
-        content.innerHTML = cleanText;
+        content.innerHTML = `<div style="line-height: 1.6; color: #333;">${cleanText}</div>`;
+
+        if (closeBtn) {
+            closeBtn.style.display = "inline-block";
+            closeBtn.innerText = "Awesome!";
+            closeBtn.style.backgroundColor = "#6c5ce7";
+            closeBtn.onclick = () => modal.classList.remove("open");
+        }
+
     } catch (e) {
-        content.innerHTML =
-            "<p style='color:red'>AI is sleeping right now. Try again later.</p>";
+        console.error(e);
+        const userMessage = e.message.includes("quota")
+            ? "Daily AI Limit Reached. Please try again tomorrow! 🕒"
+            : "AI is sleeping right now. Try again later.";
+
+        content.innerHTML = `
+            <div style="text-align: center; color: #ff7675; padding: 10px;">
+                <i class='bx bxs-error-circle' style="font-size: 3rem;"></i>
+                <p style="margin-top:10px;">${userMessage}</p>
+            </div>
+        `;
+
+        if (closeBtn) {
+            closeBtn.style.display = "inline-block";
+            closeBtn.innerText = "Close"; // Change text to Close
+            closeBtn.style.backgroundColor = "#ff7675"; // Red
+            closeBtn.onclick = () => modal.classList.remove("open");
+        }
     }
 }
 
@@ -667,6 +708,16 @@ async function magicFill() {
         showToast("Please enter a book title first!");
         return;
     }
+    const cacheKey = "ai_cache_" + title.toLowerCase();
+    const cachedData = localStorage.getItem(cacheKey);
+
+    if (cachedData) {
+        const data = JSON.parse(cachedData);
+        authorInput.value = data.author || "";
+        pubInput.value = data.publisher || "";
+        showToast("Magic applied from Cache! (0 tokens used) ⚡");
+        return;
+    }
 
     const btn = event.currentTarget;
     const originalIcon = btn.innerHTML;
@@ -674,18 +725,29 @@ async function magicFill() {
     btn.disabled = true;
 
     try {
+        // 3. 
         const response = await fetch(`/api/magic-details?title=${encodeURIComponent(title)}`);
-        if (!response.ok) throw new Error("AI Failed");
+
+        if (!response.ok) {
+            if (response.status === 429) {
+                throw new Error("Daily Limit Reached. Try again tomorrow!");
+            }
+            throw new Error("AI Failed");
+        }
 
         const data = await response.json();
 
         authorInput.value = data.author || "";
         pubInput.value = data.publisher || "";
 
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+
         showToast("Magic applied! ✨");
+
     } catch (error) {
         console.error(error);
-        showToast("Could not find book details 😓");
+        const msg = error.message.includes("Limit") ? error.message : "Could not find book details 😓";
+        showToast(msg);
     } finally {
         btn.innerHTML = originalIcon;
         btn.disabled = false;
