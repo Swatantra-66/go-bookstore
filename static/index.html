@@ -1477,11 +1477,13 @@
           const res = await fetch(`/recommend?user=${currentUser.email}`);
           const data = await res.json();
 
-          // 4. Convert newlines to breaks for clean display
-          // (Gemini returns Markdown, we do a simple cleanup)
-          let formattedText = data.answer.replace(/\n/g, "<br>");
+          // 4. CLEANUP: Remove Markdown symbols (```html) and newlines
+          let cleanText = data.answer
+            .replace(/```html/g, "") // Remove starting tag
+            .replace(/```/g, "") // Remove ending tag
+            .replace(/\n/g, "<br>"); // Keep line breaks
 
-          content.innerHTML = formattedText;
+          content.innerHTML = cleanText;
         } catch (e) {
           content.innerHTML =
             "<p style='color:red'>AI is sleeping right now. Try again later.</p>";
