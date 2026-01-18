@@ -618,11 +618,7 @@ function toggleDarkMode() {
     }
 }
 
-
-/* --- 🎙️ VOICE SEARCH FUNCTIONALITY --- */
-
 function startVoiceSearch() {
-    // 1. Check if browser supports it
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
@@ -634,7 +630,6 @@ function startVoiceSearch() {
     const btn = document.getElementById("voice-btn");
     const searchBox = document.getElementById("search-box");
 
-    // Configure
     recognition.lang = 'en-US';
     recognition.interimResults = false;
 
