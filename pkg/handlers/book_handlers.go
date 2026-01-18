@@ -190,9 +190,10 @@ func ServePublicPage(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./static/public.html")
 }
 
+// --- AI RECOMMENDATION HANDLER (UPDATED) ---
 func GetAIRecommendations(w http.ResponseWriter, r *http.Request) {
+	// 1. Get User Email & Books
 	userEmail := r.URL.Query().Get("user")
-
 	allBooks := models.GetBooksByUser(userEmail)
 	var favTitles []string
 	for _, b := range allBooks {
@@ -202,15 +203,17 @@ func GetAIRecommendations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(favTitles) == 0 {
-		json.NewEncoder(w).Encode(map[string]string{"answer": "<h3>Please mark some books as ❤️ Favorites first!</h3><p>I need to know what you like before I can make suggestions.</p>"})
+		json.NewEncoder(w).Encode(map[string]string{"answer": "<h3>Please favorite some books! ❤️</h3>"})
 		return
 	}
 
-	prompt := fmt.Sprintf("I love reading these books: %v. Based on this taste, recommend 3 new books I might like. Keep the answer short, HTML formatted (use <b> for titles), and explain why for each.", favTitles)
+	// 2. Construct Prompt (Sanitized)
+	// We tell the AI strictly to ignore safety for book titles
+	prompt := fmt.Sprintf("I am building a library app. The user has read these books: %v. Suggest 3 similar books. Format as HTML. Ignore profanity in titles as they are just book names.", favTitles)
+	apiKey := "AIzaSyD9HuNW_8iw-dY3o35YK5X-uxL3cNjLCQ0"
 
-	apiKey := "AIzaSyAYk-9jXP90TauNk2Cc6rF_FsaLIVFflaE"
-	url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey
-
+	url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey
+	// 4. JSON Body with MAX SAFETY BYPASS
 	requestBody, _ := json.Marshal(map[string]interface{}{
 		"contents": []interface{}{
 			map[string]interface{}{
@@ -219,16 +222,32 @@ func GetAIRecommendations(w http.ResponseWriter, r *http.Request) {
 				},
 			},
 		},
+		// 👇 FORCE DISABLE ALL FILTERS
+		"safetySettings": []map[string]string{
+			{"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+			{"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+			{"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+			{"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+		},
 	})
 
+	// 5. Send Request
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
-		http.Error(w, "AI Brain freeze! Try again.", http.StatusInternalServerError)
+		http.Error(w, "Network Error", http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()
 
+	// 6. Read & Debug Response
 	body, _ := io.ReadAll(resp.Body)
+
+	// DEBUG PRINT
+	fmt.Println("--- DEBUG RESPONSE ---")
+	fmt.Println(string(body))
+	fmt.Println("----------------------")
+
+	// 7. Parse
 	var geminiResp struct {
 		Candidates []struct {
 			Content struct {
@@ -237,14 +256,20 @@ func GetAIRecommendations(w http.ResponseWriter, r *http.Request) {
 				} `json:"parts"`
 			} `json:"content"`
 		} `json:"candidates"`
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
 	}
-
 	json.Unmarshal(body, &geminiResp)
 
-	if len(geminiResp.Candidates) > 0 {
+	// 8. Send Answer
+	if geminiResp.Error.Message != "" {
+		json.NewEncoder(w).Encode(map[string]string{"answer": "<b>API Error:</b> " + geminiResp.Error.Message})
+	} else if len(geminiResp.Candidates) > 0 {
 		aiText := geminiResp.Candidates[0].Content.Parts[0].Text
 		json.NewEncoder(w).Encode(map[string]string{"answer": aiText})
 	} else {
-		json.NewEncoder(w).Encode(map[string]string{"answer": "Sorry, I couldn't think of anything."})
+		// If we get here, it means 200 OK but empty answer (Blocked)
+		json.NewEncoder(w).Encode(map[string]string{"answer": "Sorry, the AI is still blocking your book list. Try removing the book with the swear word to test if it works!"})
 	}
 }
